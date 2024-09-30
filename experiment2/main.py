@@ -11,15 +11,15 @@ from pybricks.tools import wait
 ev3 = EV3Brick()
 
 # Initialize Ports
-lift_motor = Motor(Port.A)
-left_motor = Motor(Port.C)
+lift_motor = Motor(Port.C)
+left_motor = Motor(Port.A)
 right_motor = Motor(Port.D)
 color_sensor = ColorSensor(Port.S1)
 ultra_sensor = UltrasonicSensor(Port.S4)
 
 # Set the motor speed
 SPEED = 100
-TURN_RATE = 25
+TURN_RATE = 50
 
 # Set the delay of the tracking line
 DELAY = 10
@@ -32,10 +32,11 @@ color_order_list = ["blue", "red", "black"]
 #------color define------------------------------------------------------------------------------------------------------------------
 
 # Define the target color or light intensity (adjust based on your needs)
+white = (36, 88, 36)
 black = (3, 8, 4)  # or use a brightness level like color_sensor.reflection()
 red = (40, 9, 6) 
 blue = (3, 39, 72)
-yellow = (36, 44, 8)
+yellow = (40, 45, 10)
 
 black_board = (14, 31, 9)
 red_board = (52, 14, 8)
@@ -47,23 +48,35 @@ blue_board = (16, 45, 81)
 #循跡:一律靠線的左邊
 
 #循跡直到遇到目標顏色(尋黃線遇到藍、紅、黑；尋藍線遇到黃)
-def read_rgb():
-    rgb = color_sensor.rgb()
-    ev3.screen.print("R: {} G: {} B: {}".format(red, green, blue))
-    return rgb
 
-def is_target_color(rgb, target_rgb, tolerance=10):
+def is_target_color(rgb, target_rgb, tolerance=8):
     """Check if the read RGB values are close to the target RGB within tolerance"""
     return all(abs(rgb[i] - target_rgb[i]) <= tolerance for i in range(3))
+
+def read_rgb():
+    rgb = color_sensor.rgb()
+    if is_target_color(rgb, black) or is_target_color(rgb, black_board):
+        ev3.screen.print("black")
+    elif is_target_color(rgb, red) or is_target_color(rgb, red_board):
+        ev3.screen.print("red")
+    elif is_target_color(rgb, blue) or is_target_color(rgb, blue_board):
+        ev3.screen.print("blue")
+    elif is_target_color(rgb, yellow):
+        ev3.screen.print("yellow")
+    else:
+        ev3.screen.print("white")
+    return rgb
 
 def track_color(direction, line_color, target_color):
     
     while not is_target_color(read_rgb(), target_color):
         
         if is_target_color(read_rgb(), line_color):
+            ev3.screen.print("track right")
             left_motor.run(direction* (SPEED - TURN_RATE) )
             right_motor.run(direction*SPEED)
         else:
+            ev3.screen.print("track left")        
             left_motor.run(direction*SPEED)
             right_motor.run(direction* (SPEED - TURN_RATE) )
 
@@ -76,9 +89,11 @@ def track_ultra(line_color):
     while ultra_sensor.distance() > 10:
         
         if is_target_color(read_rgb(), line_color):
+            ev3.screen.print("track right")
             left_motor.run(SPEED - TURN_RATE)
             right_motor.run(SPEED)
         else:
+            ev3.screen.print("track left")
             left_motor.run(SPEED)
             right_motor.run(SPEED - TURN_RATE)
 
@@ -104,19 +119,21 @@ def backward():
 
 #轉彎是活的轉彎，取兩輪中檢為軸旋轉
 def turn_right(line_color):
+    ev3.screen.print("right")
     left_motor.run(SPEED)
     right_motor.run(-SPEED)
-    wait(100)
-    while color_sensor.color() != line_color:
+    wait(500)
+    while not is_target_color(read_rgb(), line_color):
         left_motor.run(SPEED)
         right_motor.run(-SPEED)
         wait(DELAY)
 
 def turn_left(line_color):
+    ev3.screen.print("left")
     left_motor.run(-SPEED)
     right_motor.run(SPEED)
-    wait(100)
-    while color_sensor.color() != line_color:
+    wait(500)
+    while not is_target_color(read_rgb(), line_color):
         left_motor.run(-SPEED)
         right_motor.run(SPEED)
         wait(DELAY)
