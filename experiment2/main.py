@@ -16,7 +16,7 @@ lift_motor = Motor(Port.C)
 left_motor = Motor(Port.A)
 right_motor = Motor(Port.D)
 color_sensor = ColorSensor(Port.S1)
-ultra_sensor = UltrasonicSensor(Port.S4)
+# ultra_sensor = UltrasonicSensor(Port.S4)
 
 # Set the motor speed
 SPEED = 180
@@ -39,8 +39,8 @@ red = (40, 9, 6)
 blue = (3, 39, 72)
 yellow = (40, 45, 10)
 
-black_board = (11, 20, 7)
-red_board = (52, 14, 8)
+black_board = (11, 21, 7)
+red_board = (53, 14, 8)
 blue_board = (16, 45, 81)
 
 
@@ -56,7 +56,7 @@ def is_target_color(rgb, target_rgb, tolerance=12):
 
 def read_rgb():
     rgb = color_sensor.rgb()
-    # ev3.screen.print(rgb)
+    #ev3.screen.print(rgb)
     # if is_target_color(rgb, black) or is_target_color(rgb, black_board):
     #     ev3.screen.print("black")
     # elif is_target_color(rgb, red) or is_target_color(rgb, red_board):
@@ -72,32 +72,49 @@ def read_rgb():
 def track_color(direction, line_color, target_color):
     
     while not is_target_color(read_rgb(), target_color):
-        
-        if is_target_color(read_rgb(), line_color):
-            ev3.screen.print("track left")
-            #left_motor.run(direction * (SPEED - TURN_RATE - 40) )
-            right_motor.run(direction * (SPEED + 40))
+        if direction == 1:
+            if is_target_color(read_rgb(), line_color):
+                #ev3.screen.print("track left")
+                left_motor.run(direction * (SPEED - TURN_RATE - 40) )
+                right_motor.run(direction * (SPEED + 40))
+            else:
+                #ev3.screen.print("track right")        
+                left_motor.run(direction * (SPEED))
+                right_motor.run(direction * (SPEED - TURN_RATE + 70) )
         else:
-            ev3.screen.print("track right")        
-            left_motor.run(direction * (SPEED))
-            #right_motor.run(direction * (SPEED - TURN_RATE + 70) )
-
+            if is_target_color(read_rgb(), line_color):
+                #ev3.screen.print("track right")
+                left_motor.run(direction * (SPEED  + 40))
+                right_motor.run(direction * (SPEED - TURN_RATE - 40))
+            else:
+                #ev3.screen.print("track left")
+                left_motor.run(direction * (SPEED- TURN_RATE + 70))
+                right_motor.run(direction * (SPEED))
         wait(DELAY)
 
 #循跡直到遇到籃子(尋藍、紅、黑線遇到籃子)
 #要注意停下來時color sensor譨感應到色卡
 def track_ultra(line_color):
 
-    while ultra_sensor.distance() > 70:
-        ev3.screen.print("distance:", ultra_sensor.distance())
+    #while ultra_sensor.distance() > 70:
+     # ev3.screen.print("distance:", ultra_sensor.distance())
+    while True:
+        color_now = read_rgb()
+        if (line_color == blue and (is_target_color(color_now, black_board) or is_target_color(color_now, red_board))):           
+            break
+        if (line_color == red and (is_target_color(color_now, black_board) or is_target_color(color_now, blue_board))):
+            break
+        if (line_color == black and (is_target_color(color_now, blue_board) or is_target_color(color_now, red_board))):
+            break
+    # while not is_target_color(read_rgb(), black_board) or not is_target_color(read_rgb(), blue_board) or not is_target_color(read(), red_board) :
         if is_target_color(read_rgb(), line_color):
-            ev3.screen.print("track right")
-            #left_motor.run(SPEED - TURN_RATE - 40)
+            #ev3.screen.print("track right")
+            left_motor.run(SPEED - TURN_RATE - 40)
             right_motor.run(SPEED)
         else:
-            ev3.screen.print("track left")
+            #ev3.screen.print("track left")
             left_motor.run(SPEED)
-            #right_motor.run(SPEED - TURN_RATE + 70)
+            right_motor.run(SPEED - TURN_RATE + 70)
 
         wait(DELAY)
 
@@ -117,7 +134,7 @@ def forward():
 def backward():
     left_motor.run(-SPEED)
     right_motor.run(-SPEED)
-    wait(150)
+    wait(100)
 
 #轉彎是活的轉彎，取兩輪中檢為軸旋轉
 def turn_right(line_color):
@@ -148,13 +165,13 @@ def turn_left(line_color):
 def lift_up():
     #lift_motor.run_target(100, 90) #前面是速度、後面是"角度位置"
     ev3.screen.print("lift_up")
-    lift_motor.run_angle(150, -90)  #前面是速度、後面是"角度距離"
+    lift_motor.run_angle(180, -115)  #前面是速度、後面是"角度距離"
     lift_motor.stop(Stop.HOLD)
 
 def lift_down():
     #lift_motor.run_target(100, 90) #Moves the motor to the absolute position of 90 degrees.
     ev3.screen.print("lift_down")
-    lift_motor.run_angle(150, 90)   #Moves the motor by 90 degrees from its current position.
+    lift_motor.run_angle(190, 115)   #Moves the motor by 90 degrees from its current position.
     lift_motor.stop(Stop.HOLD)
     
 
@@ -236,7 +253,10 @@ if color_order_list[0] == "black":  #黑球在第一個籃子
     lift_down()
     backward()
     track_color(-1,blue,yellow)
+    ev3.speaker.beep()
     stop()
+    forward()
+    forward()
     turn_right(yellow)
     track_color(1,yellow,red)
     forward()
@@ -247,8 +267,8 @@ if color_order_list[0] == "black":  #黑球在第一個籃子
 else:                               #黑球沒有在第一個的話迪定在第二個
     backward()
     track_color(-1,blue,yellow)
-    # stop()
-    # backward()
+    stop()
+    backward()
     turn_right(yellow)
     track_color(1,yellow,red)
     pick_up_the_ball(red)           #去紅線拿黑球
