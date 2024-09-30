@@ -18,11 +18,11 @@ color_sensor = ColorSensor(Port.S1)
 ultra_sensor = UltrasonicSensor(Port.S4)
 
 # Set the motor speed
-SPEED = 100
-TURN_RATE = 50
+SPEED = 50
+TURN_RATE = 25
 
 # Set the delay of the tracking line
-DELAY = 10
+DELAY = 20
 CROSS_LINE_DELAY = 100
 
 # Set the map data structure
@@ -72,11 +72,11 @@ def track_color(direction, line_color, target_color):
     while not is_target_color(read_rgb(), target_color):
         
         if is_target_color(read_rgb(), line_color):
-            ev3.screen.print("track right")
+            ev3.screen.print("track left")
             left_motor.run(direction* (SPEED - TURN_RATE) )
             right_motor.run(direction*SPEED)
         else:
-            ev3.screen.print("track left")        
+            ev3.screen.print("track right")        
             left_motor.run(direction*SPEED)
             right_motor.run(direction* (SPEED - TURN_RATE) )
 
