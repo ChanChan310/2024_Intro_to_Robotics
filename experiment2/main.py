@@ -76,7 +76,9 @@ def track_color(direction, line_color, target_color):
             if is_target_color(read_rgb(), line_color):
                 #ev3.screen.print("track left")
                 left_motor.run(direction * (SPEED - TURN_RATE - 40) )
-                right_motor.run(direction * (SPEED + 40))
+                right_motor.run(direction * (SPEED + 70))
+                wait(DELAY)
+                wait(DELAY)
             else:
                 #ev3.screen.print("track right")        
                 left_motor.run(direction * (SPEED))
@@ -84,12 +86,12 @@ def track_color(direction, line_color, target_color):
         else:
             if is_target_color(read_rgb(), line_color):
                 #ev3.screen.print("track right")
-                left_motor.run(direction * (SPEED  + 40))
-                right_motor.run(direction * (SPEED - TURN_RATE - 40))
+                left_motor.run(direction * (SPEED - 40))
+                right_motor.run(direction * (SPEED - TURN_RATE - 70))
             else:
                 #ev3.screen.print("track left")
-                left_motor.run(direction * (SPEED- TURN_RATE + 70))
-                right_motor.run(direction * (SPEED))
+                left_motor.run(direction * (SPEED - TURN_RATE +20))
+                right_motor.run(direction * (SPEED - 20))
         wait(DELAY)
 
 #循跡直到遇到籃子(尋藍、紅、黑線遇到籃子)
@@ -157,6 +159,15 @@ def turn_left(line_color):
         right_motor.run(SPEED)
         wait(DELAY)
 
+def turn_left_small(line_color):
+    ev3.screen.print("left")
+    left_motor.run(-SPEED)
+    right_motor.run(SPEED)
+    wait(100)
+    while not is_target_color(read_rgb(), line_color):
+        left_motor.run(-SPEED)
+        right_motor.run(SPEED)
+        wait(DELAY)
 
 
 
@@ -165,13 +176,13 @@ def turn_left(line_color):
 def lift_up():
     #lift_motor.run_target(100, 90) #前面是速度、後面是"角度位置"
     ev3.screen.print("lift_up")
-    lift_motor.run_angle(180, -115)  #前面是速度、後面是"角度距離"
+    lift_motor.run_angle(190, -135)  #前面是速度、後面是"角度距離"
     lift_motor.stop(Stop.HOLD)
 
 def lift_down():
     #lift_motor.run_target(100, 90) #Moves the motor to the absolute position of 90 degrees.
     ev3.screen.print("lift_down")
-    lift_motor.run_angle(190, 115)   #Moves the motor by 90 degrees from its current position.
+    lift_motor.run_angle(190, 135)   #Moves the motor by 90 degrees from its current position.
     lift_motor.stop(Stop.HOLD)
     
 
@@ -257,28 +268,39 @@ if color_order_list[0] == "black":  #黑球在第一個籃子
     stop()
     forward()
     forward()
+    forward()
     turn_right(yellow)
-    track_color(1,yellow,red)
+    # track_color(1,yellow,red)
+    # ev3.screen.print("red")
+    # forward()
+    turn_left_small(yellow)
+    track_color(1,yellow,black)
+    ev3.screen.print("black")
     forward()
     track_color(1,yellow,black)
-    forward()
-    track_color(1,yellow,black)
+    ev3.screen.print("black")
     stop()
 else:                               #黑球沒有在第一個的話迪定在第二個
     backward()
     track_color(-1,blue,yellow)
     stop()
-    backward()
+    forward()
+    forward()
+    forward()
     turn_right(yellow)
     track_color(1,yellow,red)
+    ev3.screen.print("red")
     pick_up_the_ball(red)           #去紅線拿黑球
     track_color(1,yellow,black)
+    ev3.screen.print("black")
     forward()
     track_color(1,yellow,black)
+    ev3.screen.print("black")
     stop()
 
 lift_up()
-backward()
+forward()
+# backward()
 
 #此時車子應該要停在黑球放置區
 #第五步驟:開始變得很複雜...(總共四種case分開討論)
@@ -327,6 +349,8 @@ else:                               #黑XX!!!!!!!!!!!!!!!!!!!!
         backward()
         track_color(-1,black,yellow)
         stop()
+        forward()
+        forward()
         turn_right(yellow)
         backward()
         track_color(-1,yellow,red)
@@ -342,6 +366,8 @@ else:                               #黑XX!!!!!!!!!!!!!!!!!!!!
         ev3.screen.print("red")
         backward()
         track_color(-1,black,yellow)
+        forward()
+        forward()
         stop()
         turn_right(yellow)
         backward()
