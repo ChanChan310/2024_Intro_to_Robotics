@@ -18,11 +18,11 @@ color_sensor = ColorSensor(Port.S1)
 ultra_sensor = UltrasonicSensor(Port.S4)
 
 # Set the motor speed
-SPEED = 50
-TURN_RATE = 25
+SPEED = 150
+TURN_RATE = 100
 
 # Set the delay of the tracking line
-DELAY = 20
+DELAY = 10
 CROSS_LINE_DELAY = 100
 
 # Set the map data structure
@@ -49,7 +49,7 @@ blue_board = (16, 45, 81)
 
 #循跡直到遇到目標顏色(尋黃線遇到藍、紅、黑；尋藍線遇到黃)
 
-def is_target_color(rgb, target_rgb, tolerance=8):
+def is_target_color(rgb, target_rgb, tolerance=12):
     """Check if the read RGB values are close to the target RGB within tolerance"""
     return all(abs(rgb[i] - target_rgb[i]) <= tolerance for i in range(3))
 
@@ -73,12 +73,12 @@ def track_color(direction, line_color, target_color):
         
         if is_target_color(read_rgb(), line_color):
             ev3.screen.print("track left")
-            left_motor.run(direction* (SPEED - TURN_RATE) )
+            left_motor.run(direction* (SPEED - TURN_RATE - 25) )
             right_motor.run(direction*SPEED)
         else:
             ev3.screen.print("track right")        
             left_motor.run(direction*SPEED)
-            right_motor.run(direction* (SPEED - TURN_RATE) )
+            right_motor.run(direction* (SPEED - TURN_RATE + 60) )
 
         wait(DELAY)
 
@@ -86,16 +86,16 @@ def track_color(direction, line_color, target_color):
 #要注意停下來時color sensor譨感應到色卡
 def track_ultra(line_color):
 
-    while ultra_sensor.distance() > 10:
-        
+    while ultra_sensor.distance() > 60:
+        ev3.screen.print("distance:", ultra_sensor.distance())
         if is_target_color(read_rgb(), line_color):
             ev3.screen.print("track right")
-            left_motor.run(SPEED - TURN_RATE)
+            left_motor.run(SPEED - TURN_RATE - 25)
             right_motor.run(SPEED)
         else:
             ev3.screen.print("track left")
             left_motor.run(SPEED)
-            right_motor.run(SPEED - TURN_RATE)
+            right_motor.run(SPEED - TURN_RATE + 45)
 
         wait(DELAY)
 
